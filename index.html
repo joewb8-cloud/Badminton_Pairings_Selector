@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Badminton Player Selector</title>
+<meta name="description" content="Pick fair, balanced badminton doubles games for 1 or 2 courts.">
+<meta name="theme-color" content="#047857">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --bg:#F1F5F9;--card:#fff;--green:#047857;--green-d:#065F46;--teal:#0D9488;--teal-d:#0F766E;
+    --blue:#1D4ED8;--blue-d:#1E3A8A;--dark:#0F172A;--grey:#64748B;--lgrey:#E2E8F0;--listbg:#F8FAFC;--red:#DC2626;
+    --a-bg:#D1FAE5;--a-bd:#6EE7B7;--a-fg:#047857;--b-bg:#DBEAFE;--b-bd:#93C5FD;--b-fg:#1D4ED8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--bg);color:var(--dark);
+       display:flex;flex-direction:column;font-size:clamp(13px,1.1vw + .4vh,18px)}
+  header{background:var(--green);color:#fff;padding:.6em 1.2em;display:flex;justify-content:space-between;align-items:center;gap:1em}
+  header h1{margin:0;font-size:1.6em}
+  #playerCount{font-weight:700}
+  main{flex:1;display:grid;grid-template-columns:1fr 2fr;gap:1em;padding:1em;min-height:0}
+  .card{background:var(--card);padding:1em;display:flex;flex-direction:column;min-height:0;border-radius:6px}
+  h2{margin:0 0 .6em;font-size:1.2em}
+  button{font:inherit;cursor:pointer;border-radius:4px}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .btn{border:none;color:#fff;font-weight:700;padding:.45em 1.1em}
+  .btn.green{background:var(--green)} .btn.green:hover:not(:disabled){background:var(--green-d)}
+  .btn.teal{background:var(--teal)}   .btn.teal:hover:not(:disabled){background:var(--teal-d)}
+  .btn.blue{background:var(--blue)}   .btn.blue:hover:not(:disabled){background:var(--blue-d)}
+  .btn.outline{background:#fff;color:var(--dark);border:1px solid #94A3B8;font-weight:400}
+  .btn.outline.red{color:var(--red)}
+  .add{display:flex;gap:.5em}
+  .add input{flex:1;font:inherit;padding:.4em;border:1px solid #94A3B8;border-radius:4px;min-width:0}
+  #playerList{flex:1;background:var(--listbg);margin-top:.8em;padding:.3em;overflow:auto;
+              display:grid;grid-template-columns:repeat(auto-fill,minmax(14em,1fr));align-content:start;gap:.25em}
+  .prow{background:#fff;padding:.3em .6em;display:flex;justify-content:space-between;align-items:center;gap:.5em;font-weight:700}
+  .prow.oncourt{color:var(--teal)}
+  .prow small{font-weight:400;color:var(--grey)}
+  .prow button{background:none;border:none;color:var(--red);font-size:.85em}
+  .empty{color:var(--grey);padding:.6em}
+  .toprow{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5em;margin-bottom:.6em}
+  .toprow h2{margin:0}
+  .toggle{display:flex;align-items:center;gap:0}
+  .toggle span{font-size:.8em;font-weight:700;color:var(--grey);margin-right:.5em}
+  .toggle button{background:#fff;border:1px solid #94A3B8;padding:.3em .9em;border-radius:0}
+  .toggle button:first-of-type{border-radius:4px 0 0 4px}
+  .toggle button:last-of-type{border-radius:0 4px 4px 0}
+  .toggle button.on{background:var(--green);color:#fff;border-color:var(--green)}
+  .actions{display:flex;flex-wrap:wrap;gap:.6em}
+  #progress{font-size:.8em;font-weight:700;color:var(--grey);margin-top:.7em}
+  #courts{flex:1;display:grid;gap:.7em;margin-top:.7em;min-height:0}
+  #courts.one{grid-template-columns:1fr} #courts.two{grid-template-columns:1fr 1fr}
+  .court{border:1px solid var(--lgrey);padding:.6em;display:flex;flex-direction:column;min-height:0;border-radius:6px}
+  .court-head{display:flex;justify-content:space-between;align-items:center}
+  .court-head h3{margin:0;font-size:1.1em}
+  .court-head button{font-size:.85em;padding:.25em .8em}
+  .info{font-size:.8em;font-weight:700;min-height:1.3em;margin-top:.3em}
+  .boxes{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:.4em;margin-top:.4em;min-height:8em}
+  .box{background:var(--listbg);border:1px solid var(--lgrey);padding:.6em;border-radius:4px;overflow:hidden}
+  .box .t{font-size:.75em;font-weight:700;color:var(--grey)}
+  .box .n{font-size:1.5em;font-weight:700;color:#94A3B8;margin-top:.3em;word-break:break-word}
+  #courts.two .box .n{font-size:1.2em}
+  .box.a{background:var(--a-bg);border-color:var(--a-bd)} .box.a .t{color:var(--a-fg)}
+  .box.b{background:var(--b-bg);border-color:var(--b-bd)} .box.b .t{color:var(--b-fg)}
+  .box.a .n,.box.b .n{color:var(--dark)}
+  .results{display:grid;grid-template-columns:1fr 1fr;gap:.4em;margin-top:.5em}
+  .results .btn{padding:.5em}
+  @media (max-width:800px){
+    body{height:auto}
+    main{grid-template-columns:1fr}
+    #playerList{max-height:40vh}
+    #courts.two{grid-template-columns:1fr}
+    header h1{font-size:1.25em}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Badminton Player Selector</h1>
+  <div id="playerCount"></div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Manage Players</h2>
+    <div class="add">
+      <input id="nameInput" placeholder="Player name" autocomplete="off">
+      <button class="btn green" id="addBtn">Add</button>
+    </div>
+    <div id="playerList"></div>
+  </section>
+
+  <section class="card">
+    <div class="toprow">
+      <h2>Selection Panel</h2>
+      <div class="toggle">
+        <span>Court setup:</span>
+        <button data-courts="1">1 Court</button>
+        <button data-courts="2">2 Courts</button>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn teal" id="selectBtn">Select 4 Players</button>
+      <button class="btn outline" id="restartBtn">Restart Selection</button>
+      <button class="btn outline red" id="resetBtn">Reset History</button>
+    </div>
+    <div id="progress"></div>
+    <div id="courts"></div>
+  </section>
+</main>
+
+<script src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+  }
+</script>
+</body>
+</html>
